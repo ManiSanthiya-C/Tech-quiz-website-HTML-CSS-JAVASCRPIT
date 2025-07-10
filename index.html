@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tech Quiz 🌠</title>
+<style>
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(180deg, #000010, #000000);
+    overflow: hidden;
+    position: relative;
+    color: white;
+  }
+
+  #particles-js {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    background: transparent;
+  }
+
+  #welcome-container, #quiz-container {
+    position: relative;
+    max-width: 600px;
+    margin: 40px auto 0 auto; 
+    background: rgba(10,10,30,0.9);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 0 30px rgba(255,255,255,0.15);
+    text-align: center;
+    z-index: 10;
+  }
+
+  #welcome-container {
+    margin-top: 80px;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    color: #66ccff;
+    margin-bottom: 20px;
+    text-shadow: 0 0 8px #66ccff;
+  }
+
+  input[type="text"] {
+    font-size: 1.1rem;
+    padding: 12px;
+    width: 80%;
+    border-radius: 8px;
+    border: 2px solid #66ccff;
+    margin-bottom: 20px;
+    outline: none;
+    background: #000022;
+    color: white;
+    transition: border-color 0.3s ease;
+  }
+  input[type="text"]:focus {
+    border-color: #3399ff;
+  }
+
+  button {
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    background-color: #3399ff;
+    color: white;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 0 12px #3399ff;
+  }
+  button:hover {
+    background-color: #66ccff;
+    box-shadow: 0 0 18px #66ccff;
+  }
+
+  #nav-bar {
+    display: flex;
+    justify-content: space-between;
+    background: #003366;
+    padding: 15px 30px;
+    color: #ccddff;
+    font-weight: 600;
+    font-size: 1.2rem;
+    border-radius: 15px 15px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 11;
+    box-shadow: 0 0 10px #3399ff;
+  }
+
+  #question {
+    font-size: 1.3rem;
+    margin-bottom: 25px;
+    text-shadow: 0 0 6px #66ccff;
+  }
+
+  #options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .option-btn {
+    padding: 15px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    border: 2px solid #3399ff;
+    background: #001122;
+    color: #99ccff;
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+    text-align: left;
+  }
+  .option-btn:hover:not(:disabled) {
+    background: #003355;
+  }
+  .option-btn:disabled {
+    cursor: not-allowed;
+  }
+  .correct {
+    background-color: #28a745 !important;
+    border-color: #1e7e34 !important;
+    color: white !important;
+    box-shadow: 0 0 10px #28a745;
+  }
+  .wrong {
+    background-color: #dc3545 !important;
+    border-color: #b02a37 !important;
+    color: white !important;
+    box-shadow: 0 0 10px #dc3545;
+  }
+
+  #reward {
+    font-size: 3rem;
+    margin: 20px 0;
+    min-height: 3.5rem;
+    text-shadow: 0 0 10px #66ccff;
+  }
+  #message {
+    font-size: 1.4rem;
+    margin: 20px 0 15px;
+    font-weight: bold;
+    text-shadow: 0 0 6px #3399ff;
+  }
+  #scoreboard {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-top: 15px;
+    color: #99ccff;
+    text-shadow: 0 0 6px #3399ff;
+  }
+</style>
+</head>
+<body>
+
+<div id="particles-js"></div>
+
+<div id="welcome-container">
+  <h1>WELCOME TO TECH QUIZ</h1>
+  <input type="text" id="player-name" placeholder="Enter your name" autocomplete="off" />
+  <br />
+  <button id="start-btn">Start Quiz</button>
+</div>
+
+<div id="quiz-container" style="display:none;">
+  <div id="nav-bar">
+    <div id="player-display">Player: </div>
+    <div id="scoreboard">Score: 0 | Wrong: 0 / 3</div>
+  </div>
+
+  <div id="question"></div>
+  <div id="options"></div>
+  <div id="reward"></div>
+  <div id="message"></div>
+  <button id="next-btn" style="display:none;">Next Question</button>
+  <button id="restart-btn" style="display:none;">Restart Quiz</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script>
+  // Shooting star style particles
+  particlesJS('particles-js', {
+    particles: {
+      number: { value: 50, density: { enable: true, value_area: 700 } },
+      color: { value: "#ffffff" },
+      shape: {
+        type: "circle",
+        stroke: { width: 0, color: "#fff" }
+      },
+      opacity: {
+        value: 0.8,
+        random: true,
+        anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false }
+      },
+      size: {
+        value: 3,
+        random: true,
+        anim: { enable: true, speed: 5, size_min: 0.5, sync: false }
+      },
+      move: {
+        enable: true,
+        speed: 10,
+        direction: "top-right",
+        random: false,
+        straight: true,
+        out_mode: "out",
+        bounce: false,
+        attract: { enable: false }
+      }
+    },
+    interactivity: {
+      detect_on: "canvas",
+      events: { onhover: { enable: false }, onclick: { enable: false }, resize: true }
+    },
+    retina_detect: true
+  });
+
+  const quizData = [
+    {
+      question: "Which keyword is used to define a class in Java?",
+      options: ["function", "class", "def", "struct"],
+      correct: "class"
+    },
+    {
+      question: "Which HTML tag is used to link an external CSS file?",
+      options: ["<style>", "<link>", "<script>", "<css>"],
+      correct: "<link>"
+    },
+    {
+      question: "What does CSS stand for?",
+      options: ["Computer Style Sheets", "Cascading Style Sheets", "Creative Style Sheets", "Colorful Style Sheets"],
+      correct: "Cascading Style Sheets"
+    },
+    {
+      question: "How do you write 'Hello World' in JavaScript?",
+      options: [
+        "console.log('Hello World');",
+        "print('Hello World');",
+        "echo('Hello World');",
+        "System.out.println('Hello World');"
+      ],
+      correct: "console.log('Hello World');"
+    },
+    {
+      question: "Which SQL command is used to retrieve data from a database?",
+      options: ["SELECT", "INSERT", "UPDATE", "DELETE"],
+      correct: "SELECT"
+    },
+    {
+      question: "Which method is used to add an element at the end of an array in JavaScript?",
+      options: [".push()", ".pop()", ".shift()", ".unshift()"],
+      correct: ".push()"
+    },
+    {
+      question: "In Java, which of these is NOT a primitive data type?",
+      options: ["int", "float", "String", "char"],
+      correct: "String"
+    },
+    {
+      question: "Which attribute is used to specify an image source in HTML?",
+      options: ["href", "src", "alt", "link"],
+      correct: "src"
+    },
+    {
+      question: "How do you select an element with id 'header' in CSS?",
+      options: ["#header", ".header", "header", "*header"],
+      correct: "#header"
+    },
+    {
+      question: "Which of these is NOT a JavaScript data type?",
+      options: ["Boolean", "Undefined", "Float", "Number"],
+      correct: "Float"
+    },
+    {
+      question: "In MySQL, which command is used to delete a table?",
+      options: ["REMOVE TABLE", "DROP TABLE", "DELETE TABLE", "CLEAR TABLE"],
+      correct: "DROP TABLE"
+    },
+    {
+      question: "What does 'var' keyword do in JavaScript?",
+      options: [
+        "Declares a variable",
+        "Defines a function",
+        "Creates an object",
+        "Starts a loop"
+      ],
+      correct: "Declares a variable"
+    },
+    {
+      question: "Which Java keyword is used to inherit a class?",
+      options: ["extends", "implements", "inherits", "super"],
+      correct: "extends"
+    },
+    {
+      question: "Which CSS property controls the text size?",
+      options: ["font-style", "text-size", "font-size", "text-style"],
+      correct: "font-size"
+    },
+    {
+      question: "Which MySQL command is used to add a new record?",
+      options: ["INSERT INTO", "ADD RECORD", "NEW ENTRY", "CREATE RECORD"],
+      correct: "INSERT INTO"
+    }
+  ];
+
+  const welcomeContainer = document.getElementById("welcome-container");
+  const quizContainer = document.getElementById("quiz-container");
+  const playerNameInput = document.getElementById("player-name");
+  const startBtn = document.getElementById("start-btn");
+  const playerDisplay = document.getElementById("player-display");
+  const questionEl = document.getElementById("question");
+  const optionsEl = document.getElementById("options");
+  const rewardEl = document.getElementById("reward");
+  const messageEl = document.getElementById("message");
+  const nextBtn = document.getElementById("next-btn");
+  const restartBtn = document.getElementById("restart-btn");
+  const scoreboardEl = document.getElementById("scoreboard");
+
+  const rewards = ["🍫", "🍦", "🌳"];
+
+  let currentIndex = 0;
+  let score = 0;
+  let wrongCount = 0;
+  let playerName = "";
+
+  startBtn.addEventListener("click", () => {
+    const name = playerNameInput.value.trim();
+    if (!name) {
+      alert("Please enter your name to start the quiz!");
+      return;
+    }
+    playerName = name;
+    welcomeContainer.style.display = "none";
+    quizContainer.style.display = "block";
+    playerDisplay.textContent = `Player: ${playerName}`;
+    loadQuestion();
+  });
+
+  function loadQuestion() {
+    rewardEl.textContent = "";
+    messageEl.textContent = "";
+    nextBtn.style.display = "none";
+    optionsEl.innerHTML = "";
+
+    if (currentIndex >= quizData.length) {
+      showFinalScore();
+      return;
+    }
+
+    const currentQ = quizData[currentIndex];
+    questionEl.textContent = `Q${currentIndex + 1}. ${currentQ.question}`;
+
+    currentQ.options.forEach(option => {
+      const button = document.createElement("button");
+      button.className = "option-btn";
+      button.textContent = option;
+      button.addEventListener("click", () => selectAnswer(button, option));
+      optionsEl.appendChild(button);
+    });
+
+    updateScoreboard();
+  }
+
+  function selectAnswer(button, selected) {
+    const currentQ = quizData[currentIndex];
+
+    Array.from(optionsEl.children).forEach(btn => btn.disabled = true);
+
+    if (selected === currentQ.correct) {
+      score++;
+      button.classList.add("correct");
+      const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
+      rewardEl.textContent = `Correct! Here's your reward: ${randomReward}`;
+      messageEl.style.color = "#28a745";
+      messageEl.textContent = "🎉 Well done! 🎉";
+    } else {
+      wrongCount++;
+      button.classList.add("wrong");
+      Array.from(optionsEl.children).forEach(btn => {
+        if (btn.textContent === currentQ.correct) {
+          btn.classList.add("correct");
+        }
+      });
+
+      messageEl.style.color = "#dc3545";
+      messageEl.textContent = `Oops! Wrong answer. You have ${3 - wrongCount} chances left.`;
+      rewardEl.textContent = "";
+    }
+    updateScoreboard();
+
+    if (wrongCount >= 3) {
+      setTimeout(endGame, 1200);
+      return;
+    }
+
+    nextBtn.style.display = "inline-block";
+  }
+
+  function updateScoreboard() {
+    scoreboardEl.textContent = `Score: ${score} | Wrong: ${wrongCount} / 3`;
+  }
+
+  function nextQuestion() {
+    currentIndex++;
+    loadQuestion();
+  }
+
+  function showFinalScore() {
+    questionEl.textContent = "Quiz Completed!";
+    optionsEl.innerHTML = "";
+    rewardEl.textContent = "";
+    messageEl.style.color = "white";
+    messageEl.textContent = `Your final score is ${score} out of ${quizData.length}. Thanks for playing, ${playerName}! 🎉`;
+    scoreboardEl.textContent = "";
+    nextBtn.style.display = "none";
+    restartBtn.style.display = "inline-block";
+  }
+
+  function endGame() {
+    questionEl.textContent = "Game Over!";
+    optionsEl.innerHTML = "";
+    rewardEl.textContent = "";
+    messageEl.style.color = "#dc3545";
+    messageEl.textContent = `You made 3 wrong answers. Better luck next time, ${playerName}!`;
+    scoreboardEl.textContent = `Final Score: ${score} out of ${quizData.length}`;
+    nextBtn.style.display = "none";
+    restartBtn.style.display = "inline-block";
+  }
+  function restartQuiz() {
+    currentIndex = 0;
+    score = 0;
+    wrongCount = 0;
+    restartBtn.style.display = "none";
+    messageEl.textContent = "";
+    rewardEl.textContent = "";
+    updateScoreboard();
+    loadQuestion();
+  }
+  nextBtn.addEventListener("click", nextQuestion);
+  restartBtn.addEventListener("click", restartQuiz);
+</script>
+</body>
+</html>
